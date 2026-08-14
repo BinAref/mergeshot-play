@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Merge Shot — Play the 2048 Ball Merge Game</title>
-<meta name="description" content="Play Merge Shot free: pull down to launch the cannon, smash numbered blocks, collect &amp; merge balls, earn a power every 100K. Reach 1 Million or last 10 minutes! Download the full merge shooter on Google Play.">
-<meta name="keywords" content="merge shot, ball 2048, merge game, ball shooter, 2048, merge numbers, number merge, brick breaker, merge puzzle">
+<meta name="description" content="Play Merge Shot free: pull down to launch the cannon, smash numbered blocks, merge balls, earn a power every 100K. Reach 1 Million! Download the full merge shooter on Google Play.">
+<meta name="keywords" content="merge shot, ball 2048, merge game, ball shooter, 2048, merge numbers, brick breaker, merge puzzle">
 <meta name="theme-color" content="#0F0F1A">
 <meta name="robots" content="index,follow">
 <meta property="og:title" content="Merge Shot — Ball 2048 Merge Shooter">
-<meta property="og:description" content="Pull down to launch, smash numbered blocks, merge balls, earn a power every 100K. Reach 1 Million!">
+<meta property="og:description" content="Pull down to launch, smash blocks, merge balls, earn a power every 100K. Reach 1 Million!">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AF%3C/text%3E%3C/svg%3E">
@@ -254,7 +254,7 @@
   let ftimer=0, dragging=false, aim={x:0,y:-1}, volleyCount=0, landIdx=0, wideStacks=0, dragStart=null, aimValid=false;
   const counts={merge:Infinity,sort:Infinity,widen:0,double:0,bomb:0,position:0,range:0,spread:0};
   let nextShot={spread:false,long:false};
-  let shake=0, shakeMag=0, sflash=0, sflashC='#fff', last=performance.now(), hinted=false, playedMs=0;
+  let shake=0, shakeMag=0, sflash=0, sflashC='#fff', last=performance.now(), hinted=false, adStart=performance.now();
   const clamp=(v,a,b)=>v<a?a:v>b?b:v, rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1));
 
   // ── Blocks (HP) ─────────────────────────────────────────────
@@ -306,7 +306,9 @@
     document.getElementById('overTitle').textContent=score>=300000?'Amazing run!':score>=80000?'Great run!':'Nice run!';
     document.getElementById('overOv').classList.add('show'); vib([40,40,80]); }
   function win(){ state='win'; sfx('level_up'); document.querySelector('#winOv .big').textContent='You reached 1 MILLION!'; document.getElementById('winOv').classList.add('show'); vib([60,50,140]); }
-  function timeUp(){ if(state==='win'||state==='over'||state==='start') return; state='win'; sfx('level_up'); document.querySelector('#winOv .big').textContent="Time's up — great run!"; document.getElementById('winOv').classList.add('show'); vib([40,40,80]); }
+  function timeUp(){ if(state==='win') return; // fires from any state (start / over / aim / shoot) — hard time cap
+    document.getElementById('overOv').classList.remove('show'); document.getElementById('startOv').classList.remove('show');
+    state='win'; sfx('level_up'); document.querySelector('#winOv .big').textContent="Time's up — download to keep playing!"; document.getElementById('winOv').classList.add('show'); vib([40,40,80]); }
 
   function addScore(dmg,x,y){
     const pts=Math.round(dmg*SCORE_MULT); score+=pts;
@@ -506,7 +508,8 @@
   ['overCta','winCta'].forEach(id=>document.getElementById(id).addEventListener('click',e=>{ e.preventDefault(); openStore(); }));
 
   function loop(now){ let dt=(now-last)/1000; last=now; if(dt>0.05)dt=0.05;
-    if(state==='aim'||state==='shoot'){ update(dt); playedMs+=dt*1000; if(playedMs>=600000) timeUp(); } // 10-minute play gate
+    if(state==='aim'||state==='shoot') update(dt);
+    if(performance.now()-adStart>=600000) timeUp(); // hard 10-min cap from when the ad appears — played or not, lost or not
     document.getElementById('collectBtn').classList.toggle('show', state==='shoot' && (balls.length>0||firing.length>0));
     render(); requestAnimationFrame(loop); }
   if(document.fonts&&document.fonts.load){ document.fonts.load('16px MSIcons').catch(()=>{}); }
