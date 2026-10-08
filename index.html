@@ -250,10 +250,14 @@
     const t=DARK?{bg:CBG?mix('#000000',a,0.22):'#0F0F1A', area:CBG?mix('#000000',a,0.16):'#1A1A2E', bar:CBG?mix('#000000',a,0.19):'#16213E', ink:'#F2F2FF', muted:'#AAA8C8', accent:onDark(a)}
                 :{bg:CBG?mix('#F2F2F7',a,0.14):'#F2F2F7', area:CBG?mix('#FFFFFF',a,0.09):'#FFFFFF', bar:CBG?mix('#FFFFFF',a,0.09):'#FFFFFF', ink:'#1C1C1E', muted:'#6E6E73', accent:onLight(a)};
     t.deep=onLight(a); t.bright=onDark(a);
-    t.boardTop=mix(t.area,t.deep,DARK?0.10:0.035); t.boardBottom=mix(t.area,t.bright,DARK?0.17:0.075);
-    const panel=DARK?mix(t.bar,t.deep,0.16):mix('#FFFFFF',t.deep,0.06);
+    // the coloured background on: the board takes the theme colour and the bars are the board itself;
+    // off: plain surfaces, and the theme colour lives in the pieces alone — blocks, balls, cannon, rail
+    let panel;
+    if(CBG){ t.boardTop=mix(t.area,t.deep,DARK?0.10:0.035); t.boardBottom=mix(t.area,t.bright,DARK?0.17:0.075); panel=t.boardTop; }
+    else if(DARK){ t.boardTop=mix(t.area,'#000000',0.12); t.boardBottom=mix(t.area,'#FFFFFF',0.025); panel=t.bar; }
+    else { t.boardTop='#EFEFF4'; t.boardBottom='#F8F8FB'; panel='#FFFFFF'; }
     t.topBar=CBG?t.boardTop:panel; t.bottomBar=CBG?t.boardBottom:panel;   // one surface, or panels set apart by tone alone
-    t.track=DARK?'rgba(255,255,255,.045)':hexa(t.deep,0.05); t.trackLine=hexa(t.accent,DARK?0.20:0.18);
+    t.track=DARK?'rgba(255,255,255,.045)':hexa(CBG?t.deep:'#000000',0.045); t.trackLine=hexa(t.accent,DARK?0.20:0.18);
     return t; })();
   { const R=document.documentElement.style, set=(k,v)=>R.setProperty(k,v), ab=DARK?0.45:0.55;
     set('--bg',T.bg); set('--area',T.area); set('--bar',T.topBar); set('--panel',T.bottomBar); set('--boardtop',T.boardTop);
@@ -532,8 +536,9 @@
       const cx=(col+0.5+(row%2?0.5:0))*W/3, cy=row*P+off;
       for(const f of [0.12,0.24,0.36]){ ctx.beginPath(); ctx.arc(cx,cy,P*f,0,6.28); ctx.stroke(); } }
     ctx.restore();
-    const fl=ctx.createLinearGradient(0,gaBottom-cell*1.2,0,gaBottom); fl.addColorStop(0,hexa(T.accent,0)); fl.addColorStop(1,hexa(T.accent,DARK?0.12:0.07));
-    ctx.fillStyle=fl; ctx.fillRect(0,gaBottom-cell*1.2,W,cell*1.2);
+    if(CBG){ // the floor's haze of colour only on a coloured background
+      const fl=ctx.createLinearGradient(0,gaBottom-cell*1.2,0,gaBottom); fl.addColorStop(0,hexa(T.accent,0)); fl.addColorStop(1,hexa(T.accent,DARK?0.12:0.07));
+      ctx.fillStyle=fl; ctx.fillRect(0,gaBottom-cell*1.2,W,cell*1.2); }
     const tg=ctx.createLinearGradient(0,queueTop,0,H); tg.addColorStop(0,T.boardBottom); tg.addColorStop(0.2,T.bottomBar); tg.addColorStop(1,T.bottomBar);
     ctx.fillStyle=tg; ctx.fillRect(0,queueTop,W,H-queueTop);
     const rg=ctx.createLinearGradient(0,0,W,0); rg.addColorStop(0,hexa(T.deep,0.1)); rg.addColorStop(0.2,hexa(T.deep,DARK?0.8:0.6));
